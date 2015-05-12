@@ -1,6 +1,9 @@
 <?php
 
-namespace crazedsanity;
+namespace crazedsanity\template;
+
+use crazedsanity\template\iTemplate;
+use crazedsanity\core\ToolBox;
 
 /**
  * Description of template
@@ -116,7 +119,7 @@ class Template implements iTemplate {
 	 * @param bool $render          If the template should be rendered (default=true)
 	 * @throws \Exception           Problems with nesting of block rows
 	 */
-	public function add(\crazedsanity\Template $template, $render=true) {
+	public function add(Template $template, $render=true) {
 		foreach($template->templates as $name=>$content) {
 			$this->_templates[$name] = $content;
 		}

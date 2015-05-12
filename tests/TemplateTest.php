@@ -1,7 +1,7 @@
 <?php
 
-use crazedsanity\Template;
-use crazedsanity\ToolBox;
+use crazedsanity\template\Template;
+use crazedsanity\core\ToolBox;
 use \InvalidArgumentException;
 use \Exception;
 
