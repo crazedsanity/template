@@ -128,10 +128,33 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$this->assertTrue((bool)preg_match('~file2: contents from file2~', $x->render()), "new template did not work");
 		$this->assertTrue((bool)preg_match('~template file was changed~', $x->render()), "new template did not overwrite original vars");
 	}
+	
+	
+	public function test_addVarList() {
+		$varList = array(
+			'var1'		=> "template",
+			'var2'		=> "file",
+			'var3'		=> "inheritance is awesome",
+			'var4'		=> "some more stuff...",
+			'var5'		=> "",
+		);
+		
+		$x = new Template(__DIR__ .'/files/templates/varArray.tmpl');
+		foreach($varList as $k=>$v) {
+			$x->addVar($k, $v);
+		}
+		
+		$y = new Template(__DIR__ .'/files/templates/varArray.tmpl');
+		$y->addVarList($varList);
+		
+		$this->assertEquals($x->render(), $y->render(), "Adding vars by array didn't work like adding them individually");
+		$this->assertEquals($x, $y);
+	}
 
 
 	public function test_blockRows() {
 		$x = new Template(dirname(__FILE__) .'/files/templates/mainWithBlockRow.tmpl');
+		$x->setContents($x->get_block_row_defs($x->contents));
 
 		$this->assertTrue(is_array($x->blockRows), "missing block rows array");
 		$this->assertTrue(count($x->blockRows) > 0, "no block rows found... ");
@@ -139,7 +162,7 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 
 		//make sure setting contents works identically to specifying contents in constructor.
 		$y = new Template(null);
-		$y->setContents(file_get_contents($x->origin));
+		$y->setContents($y->get_block_row_defs(file_get_contents($x->origin)));
 		$this->assertEquals($x->blockRows, $y->blockRows);
 
 		$rows = array(

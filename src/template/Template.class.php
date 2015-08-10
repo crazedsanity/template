@@ -38,7 +38,7 @@ class Template implements iTemplate {
 						$bits = explode('/', $file);
 						$this->_name = preg_replace('~\.tmpl~', '', array_pop($bits));
 					}
-					$this->_contents = $this->get_block_row_defs(file_get_contents($file));
+					$this->_contents = file_get_contents($file);
 					$this->_dir = dirname($file);
 				} catch (Exception $ex) {
 					throw new \InvalidArgumentException;
@@ -107,7 +107,7 @@ class Template implements iTemplate {
 	 * @param $value        Set internal contents to this value.
 	 */
 	public function setContents($value) {
-		$this->_contents = $this->get_block_row_defs($value);
+		$this->_contents = $value;
 	}
 	//-------------------------------------------------------------------------
 
@@ -123,8 +123,6 @@ class Template implements iTemplate {
 		foreach($template->templates as $name=>$content) {
 			$this->_templates[$name] = $content;
 		}
-
-		$template->_contents = $this->get_block_row_defs($template->_contents);
 
 		if($render === true) {
 			$this->_templates[$template->name] = $template->render();
@@ -153,18 +151,35 @@ class Template implements iTemplate {
 
 	//-------------------------------------------------------------------------
 	/**
+	 * Add an array of variables, or Template objects (or a mixture)
+	 * 
+	 * @param array $vars
+	 * @param type $render
+	 */
+	public function addVarList(array $vars, $render=true) {
+		foreach($vars as $k=>$v) {
+			if(is_object($v) && get_class($v) == get_class($this)) {
+				$this->add($x, $render);
+			}
+			else {
+				$x = new Template(null, $k);
+				$x->setContents($v);
+				$this->add($x, $render);
+			}
+		}
+	}
+	//-------------------------------------------------------------------------
+
+
+
+	//-------------------------------------------------------------------------
+	/**
 	 * @param bool $stripUndefinedVars      Removes undefined template vars
 	 * @return mixed|string                 Rendered template
 	 */
 	public function render($stripUndefinedVars=true) {
 		$numLoops = 0;
 		$out = $this->_contents;
-
-		//handle block rows.
-		foreach($this->_blockRows as $name=>$blockRow) {
-			$parsed = $blockRow->render();
-			$this->addVar('__BLOCKROW__'. $name, $parsed, false); // calling render wastes time.
-		}
 
 		$rendered = array();
 		foreach($this->_templates as $name=>$obj) {
@@ -176,6 +191,7 @@ class Template implements iTemplate {
 			}
 		}
 
+		$tags = array();
 		while (preg_match_all('~\{(\S{1,})\}~U', $out, $tags) && $numLoops < $this->recursionDepth) {
 			$out = ToolBox::mini_parser($out, $rendered, '{', '}');
 			$numLoops++;
@@ -197,7 +213,7 @@ class Template implements iTemplate {
 	 * @return array
 	 * @throws \Exception
 	 */
-	protected function get_block_row_defs($templateContents) {
+	public function get_block_row_defs($templateContents) {
 		//cast $retArr as an array, so it's clean.
 		$retArr = array();
 
@@ -306,6 +322,8 @@ class Template implements iTemplate {
 		else {
 			throw new \InvalidArgumentException("block row '". $name ."' does not exist... ". ToolBox::debug_print($this,0));
 		}
+		
+		return $final;
 	}
 	//---------------------------------------------------------------------------------------------
 
