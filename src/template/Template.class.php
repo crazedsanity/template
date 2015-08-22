@@ -20,7 +20,6 @@ class Template implements iTemplate {
 	private $recursionDepth=10;
 
 
-
 	//-------------------------------------------------------------------------
 	/**
 	 * @param $file         Template file to use for contents (can be null)
@@ -120,15 +119,21 @@ class Template implements iTemplate {
 	 * @throws \Exception           Problems with nesting of block rows
 	 */
 	public function add(Template $template, $render=true) {
-		foreach($template->templates as $name=>$content) {
-			$this->_templates[$name] = $content;
-		}
+		if(strlen($template->name)) {
+			ToolBox::debug_print(__METHOD__ ." - name=(". $template->name .")");
+			foreach($template->templates as $name=>$content) {
+				$this->_templates[$name] = $content;
+			}
 
-		if($render === true) {
-			$this->_templates[$template->name] = $template->render();
+			if($render === true) {
+				$this->_templates[$template->name] = $template->render();
+			}
+			else {
+				$this->_templates[$template->name] = $template->contents;
+			}
 		}
-		else {
-			$this->_templates[$template->name] = $template->contents;
+		else{
+			throw new InvalidArgumentException("template is missing a name");
 		}
 	}
 	//-------------------------------------------------------------------------
@@ -202,6 +207,25 @@ class Template implements iTemplate {
 		}
 
 		return $out;
+	}
+	//-------------------------------------------------------------------------
+	
+	
+	
+	//-------------------------------------------------------------------------
+	public function renderRows(array $recordSet, $stripUndefinedVars=true) {
+		$renderedRows = "";
+		if(is_array($recordSet) && count($recordSet)) {
+			foreach($recordSet as $record) {
+				$this->addVarList($record);
+				$renderedRows .= $this->render($stripUndefinedVars);
+			}
+			$this->reset();
+		}
+		else {
+			throw new \InvalidArgumentException("invalid or empty array");
+		}
+		return $renderedRows;
 	}
 	//-------------------------------------------------------------------------
 
@@ -354,6 +378,15 @@ class Template implements iTemplate {
 		}
 
 		return $retval;
+	}
+	//---------------------------------------------------------------------------------------------
+	
+	
+	
+	//---------------------------------------------------------------------------------------------
+	public function reset() {
+		$this->_blockRows = array();
+		$this->_templates = array();
 	}
 	//---------------------------------------------------------------------------------------------
 }

@@ -6,6 +6,11 @@ use \InvalidArgumentException;
 use \Exception;
 
 class TestOfTemplate extends PHPUnit_Framework_TestCase {
+	
+	public function test_noname() {
+		$justFile = new Template(dirname(__FILE__) .'/files/templates/main.tmpl');
+		$this->assertEquals('main', $justFile->name, "unexpected name, expected 'main', actual=(". $justFile->name .")");
+	}
 
 	public function test_create() {
 		$justFile = new Template(dirname(__FILE__) .'/files/templates/main.tmpl');
@@ -180,5 +185,71 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 
 		$this->assertFalse((bool)preg_match('~<!-- BEGIN ~', $x->render()), "rendered template still contains block row begin tag");
 		$this->assertFalse((bool)preg_match('~<!-- END ~', $x->render()), "rendered template still contains block row end tag");
+	}
+	
+	
+	public function test_reset() {
+		$x = new Template(__DIR__ .'/files/templates/main.tmpl');
+		$y = clone $x;
+		
+		$x->addVarList(array('one'=>1,'two'=>2));
+		$z = clone $x;
+		
+		$x->reset();
+		
+		$this->assertEquals($x, $y);
+		$this->assertNotEquals($x, $z);
+	}
+	
+	
+	public function test_rowParsing() {
+		$path = __DIR__ .'/files/templates/testRow.tmpl';
+		
+		$recordSet = array(
+			0 => array(
+				'primary_id'    => 1,
+				'record_name'   => 'The First Record',
+				'another_field' => 'field value',
+				'is_active'     => 0,
+			),
+			1 => array(
+				'primary_id'    => 3,
+				'record_name'   => 'A third record',
+				'another_field' => 'something else',
+				'is_active'     => 1,
+			),
+		);
+		
+		$old = new Template($path);
+		$rendered = "";
+		
+		$new = new Template($path);
+		
+		foreach($recordSet as $record) {
+			$old->addVarList($record);
+			$rendered .= $old->render();
+		}
+		
+		$newRender = $new->renderRows($recordSet);
+		
+		$this->assertEquals($rendered, $newRender);
+		
+		$testMe = clone $new;
+		$new->reset();
+		$this->assertEquals($testMe, $new, "template not reset after renderRows()");
+		
+		$old->reset();
+		
+		// make sure rendering works without stripping undefined vars
+		
+		$renderedWithLeftovers = "";
+		foreach($recordSet as $record) {
+			$old->addVarList($record);
+			$renderedWithLeftovers .= $old->render(false);
+		}
+		
+		$newRenderedWithLeftovers = $new->renderRows($recordSet, false);
+		
+		$this->assertEquals($renderedWithLeftovers, $newRenderedWithLeftovers);
 	}
 }
