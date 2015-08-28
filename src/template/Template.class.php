@@ -18,6 +18,8 @@ class Template implements iTemplate {
 	private $_origin;
 	private $_dir;
 	private $recursionDepth=10;
+	
+	const VARIABLE_REGEX = '[a-zA-Z_][a-zA-Z0-9_]*';
 
 
 	//-------------------------------------------------------------------------
@@ -197,13 +199,13 @@ class Template implements iTemplate {
 		}
 
 		$tags = array();
-		while (preg_match_all('~\{(\S{1,})\}~U', $out, $tags) && $numLoops < $this->recursionDepth) {
+		while (preg_match_all('~\{'. self::VARIABLE_REGEX .'\}~U', $out, $tags) && $numLoops < $this->recursionDepth) {
 			$out = ToolBox::mini_parser($out, $rendered, '{', '}');
 			$numLoops++;
 		}
 
 		if($stripUndefinedVars === true) {
-			$out = preg_replace('/\{.\S+?\}/', '', $out);
+			$out = preg_replace('/\{'. self::VARIABLE_REGEX .'\}/', '', $out);
 		}
 
 		return $out;
@@ -364,7 +366,7 @@ class Template implements iTemplate {
 	//---------------------------------------------------------------------------------------------
 	public static function getTemplateVarDefinitions($fromContents) {
 		$matches = array();
-		preg_match_all('~\{(\S{1,})\}~U', $fromContents, $matches);
+		preg_match_all('~\{'. self::VARIABLE_REGEX .'\}~U', $fromContents, $matches);
 
 		$retval = array();
 

@@ -252,4 +252,39 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($renderedWithLeftovers, $newRenderedWithLeftovers);
 	}
+	
+	
+	public function test_strippingJsOneLiners() {
+		$_tmpl = new Template(__DIR__ .'/files/templates/js.tmpl');
+		$foundThis = strstr($_tmpl->contents, 'Typekit.load');
+		$this->assertTrue($foundThis !== false);
+		$this->assertTrue(strlen($foundThis) > 0);
+		
+		$rendered = $_tmpl->render(true);
+		$foundAfterRender = strstr($rendered, 'Typekit.load');
+		$this->assertTrue($foundAfterRender !== false, "javascript was stripped from output: ". $foundAfterRender);
+		$this->assertTrue(strlen($foundAfterRender) > 0);
+		
+		$this->assertEquals(strlen($foundThis), strlen($foundAfterRender));
+	}
+	
+	
+	public function test_inheritance() {
+		$_main = new Template(__DIR__ .'/files/templates/inheritance_main.tmpl');
+		$_sub = new Template(__DIR__ .'/files/templates/inheritance_sub.tmpl');
+		
+		$mainVars = array(
+			'inheritance'	=> "Loads of money",
+			'separate'		=> "ONLY FOR MAIN",
+		);
+		
+		$recordSet = array(
+			0	=> array('separate'	=> 'first'),
+			1	=> array('separate'	=> 'second'),
+			2	=> array('separate'	=> 'third'),
+		);
+		
+		$rows = $_sub->renderRows($recordSet, false);
+		$_main->addVar('subTemplate', $rows);
+	}
 }
