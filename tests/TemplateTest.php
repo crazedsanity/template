@@ -61,8 +61,8 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$rendered = $x->render();
 		$this->assertTrue(strlen($x->render()) > 0, "failed to render template");
 
-		$this->assertNotEquals($originalContents, $x->render(), "render did not remove loose template vars");
-		$this->assertEquals(0, count(Template::getTemplateVarDefinitions($x->render())), "found loose template vars");
+		$this->assertNotEquals($originalContents, $x->render(true), "render did not remove loose template vars");
+		$this->assertEquals(0, count(Template::getTemplateVarDefinitions($x->render(true))), "found loose template vars");
 
 		$this->assertEquals($originalContents, $x->render(false), "render removed loose template strings when told not to");
 		$this->assertTrue(count(Template::getTemplateVarDefinitions($x->render(false))) > 0, "render removed loose template strings (second check)");
@@ -95,7 +95,7 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$x->add(new Template(dirname(__FILE__) .'/files/templates/recursive1.tmpl'),false);
 		$x->add(new Template(dirname(__FILE__) .'/files/templates/recursive2.tmpl'), false);
 
-		$rendered = $x->render();
+		$rendered = $x->render(true);
 		$this->assertTrue(strlen($rendered) > 0, "rendered value is blank... ");
 
 		$matches = array();
@@ -301,7 +301,7 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 			2	=> array('separate'	=> 'third'),
 		);
 		
-		$rows = $_sub->renderRows($recordSet, false);
+		$rows = $_sub->renderRows($recordSet);
 		$_main->addVarList($mainVars);
 		$_main->addVar('subTemplate', $rows, false);
 		

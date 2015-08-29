@@ -184,7 +184,7 @@ class Template implements iTemplate {
 	 * @param bool $stripUndefinedVars      Removes undefined template vars
 	 * @return mixed|string                 Rendered template
 	 */
-	public function render($stripUndefinedVars=true) {
+	public function render($stripUndefinedVars=false) {
 		$numLoops = 0;
 		$out = $this->_contents;
 
@@ -215,7 +215,7 @@ class Template implements iTemplate {
 	
 	
 	//-------------------------------------------------------------------------
-	public function renderRows(array $recordSet, $stripUndefinedVars=true) {
+	public function renderRows(array $recordSet, $stripUndefinedVars=false) {
 		$renderedRows = "";
 		if(is_array($recordSet) && count($recordSet)) {
 			foreach($recordSet as $record) {
