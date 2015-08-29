@@ -7,6 +7,23 @@ use \Exception;
 
 class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	
+	
+	public function test_findVars() {
+		// the "3rd" item won't match, because it's not a valid variable name.
+		$found = Template::getTemplateVarDefinitions("{first} {_second} {3rd} {_4th} {first}");
+		
+		$this->assertEquals(3, count($found), "expected to find 3 distinct variables, instead, found: ". ToolBox::debug_print($found,0));
+		
+		$this->assertTrue(isset($found['first']), "did not find the variable 'first'");
+		$this->assertEquals($found['first'], 2, "only found one instance of 'first', should have found two");
+		
+		$this->assertTrue(isset($found['_second']), "did not find the variable '_second'");
+		$this->assertEquals($found['_second'], 1, "found incorrect number of the variable '_second'");
+		
+		$this->assertTrue(isset($found['_4th']), "did not find the variable '_4th'");
+		$this->assertEquals($found['_4th'], 1, "found incorrect number of the variable '_4th'");
+	}
+	
 	public function test_noname() {
 		$justFile = new Template(dirname(__FILE__) .'/files/templates/main.tmpl');
 		$this->assertEquals('main', $justFile->name, "unexpected name, expected 'main', actual=(". $justFile->name .")");
@@ -285,6 +302,19 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		);
 		
 		$rows = $_sub->renderRows($recordSet, false);
-		$_main->addVar('subTemplate', $rows);
+		$_main->addVarList($mainVars);
+		$_main->addVar('subTemplate', $rows, false);
+		
+		$rendered = $_main->render(false);
+		
+		$this->assertEquals(0, count(Template::getTemplateVarDefinitions($rendered)));
+		
+		$this->assertEquals(1, preg_match('/first||/', $rendered));
+		$this->assertEquals(1, preg_match('/second||/', $rendered));
+		$this->assertEquals(1, preg_match('/third||/', $rendered));
+		
+		$matches = array();
+		$this->assertEquals(4, preg_match_all('/Loads of money/', $rendered, $matches), "inheritance failed: ".ToolBox::debug_print($matches,0));
+		$this->assertEquals(4, count($matches[0]), "inheritance failed, not all variables were filled in: ". ToolBox::debug_print($matches) ."\n\n". ToolBox::debug_print($rendered));
 	}
 }

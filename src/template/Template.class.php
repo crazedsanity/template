@@ -19,7 +19,7 @@ class Template implements iTemplate {
 	private $_dir;
 	private $recursionDepth=10;
 	
-	const VARIABLE_REGEX = '[a-zA-Z_][a-zA-Z0-9_]*';
+	const VARIABLE_REGEX = '([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)';
 
 
 	//-------------------------------------------------------------------------
@@ -191,7 +191,7 @@ class Template implements iTemplate {
 		$rendered = array();
 		foreach($this->_templates as $name=>$obj) {
 			if(is_object($obj)) {
-				$rendered[$name] = $obj->render();
+				$rendered[$name] = $obj->render($stripUndefinedVars);
 			}
 			else {
 				$rendered[$name] = $obj;
@@ -369,7 +369,7 @@ class Template implements iTemplate {
 		preg_match_all('~\{'. self::VARIABLE_REGEX .'\}~U', $fromContents, $matches);
 
 		$retval = array();
-
+		
 		foreach($matches[1] as $name) {
 			if(!isset($retval[$name])) {
 				$retval[$name] = 1;
