@@ -149,7 +149,15 @@ class Template implements iTemplate {
 	 */
 	public function addVar($name, $value=null, $render=true) {
 		$x = new Template(null, $name);
-		$x->setContents($value);
+		if(is_null($value)) {
+			$value = "";
+		}
+		if(is_string($value) || is_numeric($value)) {
+			$x->setContents($value);
+		}
+		else {
+			throw new \InvalidArgumentException("value was not appropriate: ". var_export($value, true));
+		}
 		$this->add($x, $render);
 	}
 	//-------------------------------------------------------------------------
@@ -166,7 +174,10 @@ class Template implements iTemplate {
 	public function addVarList(array $vars, $render=true) {
 		foreach($vars as $k=>$v) {
 			if(is_object($v) && get_class($v) == get_class($this)) {
-				$this->add($x, $render);
+				$this->add($v, $render);
+			}
+			elseif(is_array($v)) {
+				$this->addVarList($v, $render);
 			}
 			else {
 				$this->addVar($k, $v);
@@ -184,7 +195,12 @@ class Template implements iTemplate {
 	 */
 	public function render($stripUndefinedVars=false) {
 		$numLoops = 0;
-		$out = $this->_contents;
+		if(is_string($this->_contents) || is_numeric($this->_contents)) {
+			$out = $this->_contents;
+		}
+		else {
+			$out = "";
+		}
 
 		$rendered = array();
 		foreach($this->_templates as $name=>$obj) {
