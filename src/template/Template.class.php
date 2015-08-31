@@ -169,9 +169,7 @@ class Template implements iTemplate {
 				$this->add($x, $render);
 			}
 			else {
-				$x = new Template(null, $k);
-				$x->setContents($v);
-				$this->add($x, $render);
+				$this->addVar($k, $v);
 			}
 		}
 	}
