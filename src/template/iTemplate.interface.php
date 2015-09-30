@@ -15,6 +15,12 @@ namespace crazedsanity\template;
 interface iTemplate {
 	public function add(Template $tmpl);
 	public function addVar($name, $value);
+	public function addVarList(array $vars);
+	public function setContents($value);
 	public function render($stripUndefinedVars=true);
+	public function renderRows(array $recordSet, $stripUndefinedVars=false);
 	public function parseBlockRow($name, array $listOfVarToValue, $useTemplateVar=null);
+	public function __toString();
+	public function reset();
+	public static function getTemplateVarDefinitions($fromContents);
 }

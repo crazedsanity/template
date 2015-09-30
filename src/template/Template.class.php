@@ -20,6 +20,7 @@ class Template implements iTemplate {
 	private $recursionDepth=10;
 	
 	const VARIABLE_REGEX = '([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)';
+	const BLOCKROWPREFIX = '__BLOCKROW__';
 
 
 	//-------------------------------------------------------------------------
@@ -109,6 +110,14 @@ class Template implements iTemplate {
 	 */
 	public function setContents($value) {
 		$this->_contents = $value;
+	}
+	//-------------------------------------------------------------------------
+	
+	
+	
+	//-------------------------------------------------------------------------
+	public function setName($value) {
+		$this->_name = $value;
 	}
 	//-------------------------------------------------------------------------
 
@@ -249,22 +258,22 @@ class Template implements iTemplate {
 
 	//-------------------------------------------------------------------------
 	/**
-	 * @param $templateContents
+	 * @param $this->_contents
 	 * @return array
 	 * @throws \Exception
 	 */
-	public function get_block_row_defs($templateContents) {
+	public function get_block_row_defs() {
 		//cast $retArr as an array, so it's clean.
 		$retArr = array();
 
 		//looks good to me.  Run the regex...
 		$flags = PREG_PATTERN_ORDER;
 		$reg = "/<!-- BEGIN (\S{1,}) -->/";
-		preg_match_all($reg, $templateContents, $beginArr, $flags);
+		preg_match_all($reg, $this->_contents, $beginArr, $flags);
 		$beginArr = $beginArr[1];
 
 		$endReg = "/<!-- END (\S{1,}) -->/";
-		preg_match_all($endReg, $templateContents, $endArr, $flags);
+		preg_match_all($endReg, $this->_contents, $endArr, $flags);
 		$endArr = $endArr[1];
 
 		$numIncomplete = 0;
@@ -290,31 +299,25 @@ class Template implements iTemplate {
 		if($numIncomplete > 0) {
 			throw new \Exception("invalidly nested block rows: ". $nesting);
 		}
-
-		//YAY!!! we've got valid data!!!
-		//reverse the order of the array, so when the ordered array
-		// is looped through, all block rows can be pulled.
-		foreach(array_reverse($beginArr) as $k=>$v) {
-			$tempRow = new Template(null, $v);
-			$tempRow->setContents($this->setBlockRow($templateContents, $v));
-			$this->_blockRows[$v] = $tempRow;
-
-		}
-
-		return($templateContents);
+		
+		//Got valid data, return the list.
+		return array_reverse($beginArr);
 	}
 	//---------------------------------------------------------------------------------------------
 
 
 
 	//---------------------------------------------------------------------------------------------
-	private function setBlockRow(&$contents, $handle, $removeDefs=true) {
+	public function setBlockRow($handle, $removeDefs=true) {
 		$name = $handle;
+		$rowPlaceholder = self::BLOCKROWPREFIX . $name;
 
 		$reg = "/<!-- BEGIN $handle -->(.+){0,}<!-- END $handle -->/sU";
-		preg_match_all($reg, $contents, $m);
+		preg_match_all($reg, $this->_contents, $m);
 		if(!is_array($m) || !isset($m[0][0]) ||  !is_string($m[0][0])) {
-			throw new \Exception("could not find ". $handle ." in '". $contents ."'");
+			ToolBox::debug_print($m,1);
+			ToolBox::debug_print(__METHOD__ .": handle=(". $handle .")", 1);
+			throw new \Exception("could not find ". $handle ." in '". $this->_contents ."'");
 		} else {
 
 			if($removeDefs) {
@@ -323,9 +326,29 @@ class Template implements iTemplate {
 				$m[0][0] = str_replace($openHandle, "", $m[0][0]);
 				$m[0][0] = str_replace($endHandle, "", $m[0][0]);
 			}
-			$contents = preg_replace($reg, "{__BLOCKROW__" . $name ."}", $contents);
+			$this->_contents = preg_replace($reg, "{". $rowPlaceholder ."}", $this->_contents);
 		}
-		return($m[0][0]);
+		
+		$blockRow = new Template(null, $rowPlaceholder);
+		$blockRow->setContents($m[0][0]);
+		
+		$this->_blockRows[$handle] = $blockRow;
+		
+		return $blockRow;
+	}
+	//---------------------------------------------------------------------------------------------
+	
+	
+	
+	//---------------------------------------------------------------------------------------------
+	public function setAllBlockRows($removeDefs=true) {
+		$defs = $this->get_block_row_defs($removeDefs);
+		
+		foreach($defs as $rowName) {
+			$this->setBlockRow($rowName);
+		}
+
+		return($this->_blockRows);
 	}
 	//---------------------------------------------------------------------------------------------
 
@@ -333,37 +356,34 @@ class Template implements iTemplate {
 
 	//---------------------------------------------------------------------------------------------
 	/**
-	 * @param $name                     Name of the existing block row to parse
-	 * @param array $listOfVarToValue   Data to iterate through to create parsed rows.
-	 * @param null $useTemplateVar      Parse into the given name instead of the default (__BLOCKROW__$name)
+	 * @param string $name				Name of the existing block row to parse
+	 * @param array  $recordSet			Data to iterate through to create parsed rows.
+	 * @param string $varName (null)	Parse into the given name instead of the default (__BLOCKROW__$name)
 	 */
-	public function parseBlockRow($name, array $listOfVarToValue, $useTemplateVar=null) {
+	public function parseBlockRow($name, array $recordSet, $varName=null) {
 		if(isset($this->_blockRows[$name])) {
-			if(is_null($useTemplateVar)) {
-				$useTemplateVar = '__BLOCKROW__'. $name;
+			
+			$myBlockRow = $this->_blockRows[$name];
+			if(!is_null($varName)) {
+//				$useTemplateVar = self::BLOCKROWPREFIX . $name;
+				$myBlockRow->setName($varName);
 			}
-
-			$final = "";
-			foreach($listOfVarToValue as $row => $kvp) {
-				if(is_array($kvp)) {
-					$tmp = clone $this->_blockRows[$name];
-					foreach($kvp as $var=>$value) {
-						$tmp->addVar($var, $value);
-					}
-					$final .= $tmp->render();
-				}
-				else {
-					throw new \InvalidArgumentException("malformed key value pair in row '". $row ."'");
-				}
+			
+//			$myBlockRow->renderRows($recordSet, true);
+			$rendered = "";
+			foreach($recordSet as $varList) {
+				$myBlockRow->addVarList($varList);
+				$rendered .= $myBlockRow->render();
 			}
-			unset($this->_blockRows[$name]);
-			$this->addVar($useTemplateVar, $final);
+			$myBlockRow->reset();
+			
+//			$this->add($myBlockRow);
 		}
 		else {
-			throw new \InvalidArgumentException("block row '". $name ."' does not exist... ". ToolBox::debug_print($this,0));
+			throw new \InvalidArgumentException("block row '". $name ."' does not exist... ");
 		}
 		
-		return $final;
+		return $rendered;
 	}
 	//---------------------------------------------------------------------------------------------
 

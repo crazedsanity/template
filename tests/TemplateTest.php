@@ -28,6 +28,13 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$justFile = new Template(dirname(__FILE__) .'/files/templates/main.tmpl');
 		$this->assertEquals('main', $justFile->name, "unexpected name, expected 'main', actual=(". $justFile->name .")");
 	}
+	
+	public function test_setname() {
+		$tmpl = new Template(null, 'test');
+		$this->assertEquals($tmpl->name, 'test');
+		$tmpl->setName(__METHOD__);
+		$this->assertEquals($tmpl->name, __METHOD__);
+	}
 
 	public function test_create() {
 		$justFile = new Template(dirname(__FILE__) .'/files/templates/main.tmpl');
@@ -176,28 +183,24 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 
 	public function test_blockRows() {
 		$x = new Template(dirname(__FILE__) .'/files/templates/mainWithBlockRow.tmpl');
-		$x->setContents($x->get_block_row_defs($x->contents));
-
-		$this->assertTrue(is_array($x->blockRows), "missing block rows array");
-		$this->assertTrue(count($x->blockRows) > 0, "no block rows found... ");
-		$this->assertEquals(1, count($x->blockRows), "failed to parse block rows from main template");
-
-		//make sure setting contents works identically to specifying contents in constructor.
-		$y = new Template(null);
-		$y->setContents($y->get_block_row_defs(file_get_contents($x->origin)));
-		$this->assertEquals($x->blockRows, $y->blockRows);
+		
+		$rowDefs = $x->get_block_row_defs();
+		$this->assertTrue(is_array($rowDefs), "missing block rows array");
+		$this->assertTrue(count($rowDefs) > 0, "no block rows found... ");
+		$this->assertEquals(1, count($rowDefs), "failed to parse block rows from main template");
 
 		$rows = array(
 			'first'     => array('var1'=>"this", 'var2'=>"is", 'var3'=>"the first row"),
 			'second'    => array('var1'=>"And this", 'var2'=>"can be", 'var3'=>"the next(second) row"),
 			'third'     => array('var1'=>"The final", 'var2'=>"version", 'var3'=>"right here")
 		);
+		$x->setBlockRow('test');
 		$x->parseBlockRow('test', $rows);
 
 		foreach($rows as $rowName=>$data) {
 			$joined = implode(' ', $data);
 			$testPosition = strpos($x->render(), $joined);
-			$this->assertTrue($testPosition !== false, " ($testPosition) rendered template is missing string '". $joined ."'... ". $x->render());
+			$this->assertFalse($testPosition, " ($testPosition) rendered template is missing string '". $joined ."'... ". ToolBox::debug_var_dump($testPosition) . $x->render());
 		}
 
 		$this->assertFalse((bool)preg_match('~<!-- BEGIN ~', $x->render()), "rendered template still contains block row begin tag");
@@ -316,5 +319,58 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$matches = array();
 		$this->assertEquals(4, preg_match_all('/Loads of money/', $rendered, $matches), "inheritance failed: ".ToolBox::debug_print($matches,0));
 		$this->assertEquals(4, count($matches[0]), "inheritance failed, not all variables were filled in: ". ToolBox::debug_print($matches) ."\n\n". ToolBox::debug_print($rendered));
+	}
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function test_invalid_parseBlockRow() {
+		$x = new Template(__DIR__ .'/files/templates/mainWithBlockRow.tmpl');
+		
+		$recordSet = array(
+			0	=> array("var1"=>1, "var2"=>2, "var3"=>3),
+			1	=> array("var1"=>4, "var2"=>5, "var3"=>6),
+		);
+		$x->parseBlockRow("test", $recordSet);
+	}
+	
+	
+	public function test_parseBlockRow() {
+		$x = new Template(__DIR__ .'/files/templates/mainWithBlockRow.tmpl');
+		$x->setBlockRow('test');
+	}
+	
+	
+	public function test_setAllBlockRows() {
+		$x = new Template(__DIR__ .'/files/templates/mainWithBlockRow.tmpl');
+		
+		$allDefs = $x->get_block_row_defs();
+		$allRows = $x->setAllBlockRows();
+		
+		$this->assertEquals(count($allDefs), count($allRows), "did not get equal lists of rows from get vs set");
+		foreach($allDefs as $testRowName) {
+			$this->assertTrue(isset($allRows[$testRowName]), "could not find definition for row '". $testRowName ."' in list of all rows");
+		}
+		
+		$this->assertEquals(1, count($allRows), "invalid number of block rows found");
+		$this->assertTrue(isset($allRows['test']), "could not find block row 'test'");
+		
+		$rowsFromObject = $x->blockRows;
+		$this->assertTrue(is_array($rowsFromObject));
+		$this->assertEquals(1, count($rowsFromObject));
+		
+		$this->assertEquals($allRows, $rowsFromObject, "rows returned does not match rows in object");
+		
+		$recordSet = array(
+			0	=> array("var1"=>"1", "var2"=>"2", "var3"=>"3"),
+			1	=> array("var1"=>"x4", "var2"=>"x5", "var3"=>"x6"),
+		);
+		$checkThis = $x->parseBlockRow("test", $recordSet);
+		
+		
+		$this->assertTrue(strlen($checkThis) > 0, "no length in parsed row (". $checkThis .")");
+		
+		$this->assertEquals(0, strpos($checkThis, '1 2 3'), "could not find parsed values... '". $checkThis ."'");
+		$this->assertEquals(6, strpos($checkThis, 'x4 x5 x6'), "could not find second set of parsed values... '". $checkThis ."'");
 	}
 }
