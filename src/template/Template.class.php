@@ -366,7 +366,7 @@ class Template implements iTemplate {
 			}
 			
 			$rendered = $myBlockRow->renderRows($recordSet, true);
-			$this->add($myBlockRow);
+			$this->addVar($myBlockRow->name, $rendered);
 		}
 		else {
 			throw new \InvalidArgumentException("block row '". $name ."' does not exist... ");

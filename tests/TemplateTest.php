@@ -200,7 +200,8 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		foreach($rows as $rowName=>$data) {
 			$joined = implode(' ', $data);
 			$testPosition = strpos($x->render(), $joined);
-			$this->assertFalse($testPosition, " ($testPosition) rendered template is missing string '". $joined ."'... ". ToolBox::debug_var_dump($testPosition) . $x->render());
+			$this->assertTrue(is_numeric($testPosition), "string position isn't numeric:". ToolBox::debug_var_dump($testPosition,0));
+			$this->assertTrue($testPosition > 0, " ($testPosition) rendered template is missing string '". $joined ."'... ". ToolBox::debug_var_dump($testPosition,0) . $x->render());
 		}
 
 		$this->assertFalse((bool)preg_match('~<!-- BEGIN ~', $x->render()), "rendered template still contains block row begin tag");
