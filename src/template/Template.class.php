@@ -362,19 +362,11 @@ class Template implements iTemplate {
 			
 			$myBlockRow = $this->_blockRows[$name];
 			if(!is_null($varName)) {
-//				$useTemplateVar = self::BLOCKROWPREFIX . $name;
 				$myBlockRow->setName($varName);
 			}
 			
-//			$myBlockRow->renderRows($recordSet, true);
-			$rendered = "";
-			foreach($recordSet as $varList) {
-				$myBlockRow->addVarList($varList);
-				$rendered .= $myBlockRow->render();
-			}
-			$myBlockRow->reset();
-			
-//			$this->add($myBlockRow);
+			$rendered = $myBlockRow->renderRows($recordSet, true);
+			$this->add($myBlockRow);
 		}
 		else {
 			throw new \InvalidArgumentException("block row '". $name ."' does not exist... ");
