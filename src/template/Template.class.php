@@ -131,7 +131,6 @@ class Template implements iTemplate {
 	 */
 	public function add(Template $template, $render=true) {
 		if(strlen($template->name)) {
-			ToolBox::debug_print(__METHOD__ ." - name=(". $template->name .")");
 			foreach($template->templates as $name=>$content) {
 				$this->_templates[$name] = $content;
 			}
@@ -315,8 +314,6 @@ class Template implements iTemplate {
 		$reg = "/<!-- BEGIN $handle -->(.+){0,}<!-- END $handle -->/sU";
 		preg_match_all($reg, $this->_contents, $m);
 		if(!is_array($m) || !isset($m[0][0]) ||  !is_string($m[0][0])) {
-			ToolBox::debug_print($m,1);
-			ToolBox::debug_print(__METHOD__ .": handle=(". $handle .")", 1);
 			throw new \Exception("could not find ". $handle ." in '". $this->_contents ."'");
 		} else {
 
