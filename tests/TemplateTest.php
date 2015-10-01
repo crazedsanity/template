@@ -374,4 +374,36 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(0, strpos($checkThis, '1 2 3'), "could not find parsed values... '". $checkThis ."'");
 		$this->assertEquals(6, strpos($checkThis, 'x4 x5 x6'), "could not find second set of parsed values... '". $checkThis ."'");
 	}
+	
+	
+	public function test_getDefinitions() {
+		$x = new Template(__DIR__ ."/files/templates/definitionsTest.tmpl");
+		$contents = file_get_contents($x->origin);
+		
+		$this->assertEquals($x->render(), $contents, "template output differs from file contents");
+		
+		$staticOut = Template::getTemplateVarDefinitions($contents);
+		$normalOut = $x->getVarDefinitions($contents);
+		$testOut = $x->getVarDefinitions(file_get_contents(__DIR__ .'/files/templates/main.tmpl'));
+		
+		$this->assertEquals($staticOut, $normalOut, "static output differs from function call output");
+		$this->assertNotEquals($staticOut, $testOut, "static output does NOT differ from test that uses a different file [MUST BE DIFFERENT]");
+		$this->assertNotEquals($normalOut, $testOut, "normal output does NOT differ from test that uses a different file [MUST BE DIFFERENT]");
+		
+		$expectations = array(
+			'var1'		=> 2,
+			'var2'		=> 1,
+			'stuff4'	=> 1,
+		);
+		$leftOvers = $expectations;
+		
+		foreach($expectations as $name=>$occurrences) {
+			$this->assertTrue(isset($normalOut[$name]), "missing '{$name}' from output");
+			$this->assertEquals($occurrences, $normalOut[$name], "invalid number of occurrences for '{$name}'");
+			
+			unset($leftOvers[$name]);
+		}
+		
+		$this->assertEquals(array(), $leftOvers, "found some unexpected leftovers");
+	}
 }

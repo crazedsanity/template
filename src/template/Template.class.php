@@ -387,6 +387,13 @@ class Template implements iTemplate {
 
 
 	//---------------------------------------------------------------------------------------------
+	/**
+	 * Search string for template var definitions like "{var}"
+	 * 
+	 * @param type $fromContents
+	 * @return array				Array of definitions: index is the name, value is the number of
+	 *									times that variable is defined.
+	 */
 	public static function getTemplateVarDefinitions($fromContents) {
 		$matches = array();
 		preg_match_all('~\{'. self::VARIABLE_REGEX .'\}~U', $fromContents, $matches);
@@ -403,6 +410,24 @@ class Template implements iTemplate {
 		}
 
 		return $retval;
+	}
+	//---------------------------------------------------------------------------------------------
+
+
+
+	//---------------------------------------------------------------------------------------------
+	/**
+	 * Searches $this->_contents for template vars.
+	 * 
+	 * @param type $fromContents	Content to search; uses internal content if none provided.
+	 * @return array				see getTemplateVarDefinitions()
+	 */
+	public function getVarDefinitions($fromContents = null) {
+		if(is_null($fromContents)) {
+			$fromContents = $this->_contents;
+		}
+
+		return self::getTemplateVarDefinitions($fromContents);
 	}
 	//---------------------------------------------------------------------------------------------
 	
