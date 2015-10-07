@@ -143,7 +143,7 @@ class Template implements iTemplate {
 			}
 		}
 		else{
-			throw new InvalidArgumentException("template is missing a name");
+			throw new \InvalidArgumentException("template is missing a name");
 		}
 	}
 	//-------------------------------------------------------------------------
