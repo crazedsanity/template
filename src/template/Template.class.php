@@ -20,7 +20,6 @@ class Template implements iTemplate {
 	private $recursionDepth=10;
 	
 	const VARIABLE_REGEX = '([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)';
-	const BLOCKROWPREFIX = '__BLOCKROW__';
 
 
 	//-------------------------------------------------------------------------
@@ -309,7 +308,7 @@ class Template implements iTemplate {
 	//---------------------------------------------------------------------------------------------
 	public function setBlockRow($handle, $removeDefs=true) {
 		$name = $handle;
-		$rowPlaceholder = self::BLOCKROWPREFIX . $name;
+		$rowPlaceholder = $name;
 
 		$reg = "/<!-- BEGIN $handle -->(.+){0,}<!-- END $handle -->/sU";
 		preg_match_all($reg, $this->_contents, $m);
