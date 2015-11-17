@@ -192,6 +192,19 @@ class Template implements iTemplate {
 		}
 	}
 	//-------------------------------------------------------------------------
+	
+	
+	
+	//-------------------------------------------------------------------------
+	public function addVarListWithPrefix(array $vars, $prefix, $render=true) {
+		$newVars = array();
+		foreach($vars as $k=>$v) {
+			$newVars[$prefix . $k] = $v;
+		}
+		
+		$this->addVarList($newVars);
+	}
+	//-------------------------------------------------------------------------
 
 
 

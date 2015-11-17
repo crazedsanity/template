@@ -179,6 +179,37 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($x->render(), $y->render(), "Adding vars by array didn't work like adding them individually");
 		$this->assertEquals($x, $y);
 	}
+	
+	
+	public function test_addVarListWithPrefix() {
+		$varList = array(
+			'var1'		=> "template",
+			'var2'		=> "file",
+			'var3'		=> "inheritance is awesome",
+			'var4'		=> "some more stuff...",
+			'var5'		=> "",
+		);
+		
+		$x = new Template(__DIR__ .'/files/templates/varArray_withPrefix.tmpl');
+		
+		// make sure we can get the two lines..
+		$prerender = $x->render(true);
+		
+		$bits = explode("\n", $prerender);
+		$this->assertEquals($bits[0], $bits[1]);
+		
+		$x->addVarListWithPrefix($varList, "prefix_");
+		$afterPrefix = $x->render(true);
+		$prefixRenderBits = explode("\n", $afterPrefix);
+		$this->assertNotEquals($prefixRenderBits[0], $prefixRenderBits[1]);
+		$this->assertTrue(strlen($prefixRenderBits[0]) == strlen(implode('', $varList)));
+		$this->assertEquals(0, strlen($prefixRenderBits[1]));
+		
+		$x->addVarList($varList);
+		$afterAdd = $x->render(true);
+		$finalBits = explode("\n", $afterAdd);
+		$this->assertEquals($finalBits[0], $finalBits[1]);
+	}
 
 
 	public function test_blockRows() {
