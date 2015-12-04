@@ -10,15 +10,18 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	
 	public function test_findVars() {
 		// the "3rd" item won't match, because it's not a valid variable name.
-		$found = Template::getTemplateVarDefinitions("{first} {_second} {3rd} {_4th} {first}");
+		$found = Template::getTemplateVarDefinitions("{first} {_second} {3rd} {_4th} {first} {with-dashes}");
 		
-		$this->assertEquals(3, count($found), "expected to find 3 distinct variables, instead, found: ". ToolBox::debug_print($found,0));
+		$this->assertEquals(4, count($found), "expected to find 3 distinct variables, instead, found: ". ToolBox::debug_print($found,0));
 		
 		$this->assertTrue(isset($found['first']), "did not find the variable 'first'");
 		$this->assertEquals($found['first'], 2, "only found one instance of 'first', should have found two");
 		
 		$this->assertTrue(isset($found['_second']), "did not find the variable '_second'");
 		$this->assertEquals($found['_second'], 1, "found incorrect number of the variable '_second'");
+		
+		$this->assertFalse(isset($found['3rd']), "found an invalidly-named variable (first character was a number)");
+		$this->assertFalse(isset($found['_4th']), "found an invalidly-named variable (underscore + number)");
 		
 		$this->assertTrue(isset($found['_4th']), "did not find the variable '_4th'");
 		$this->assertEquals($found['_4th'], 1, "found incorrect number of the variable '_4th'");
