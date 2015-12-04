@@ -14,19 +14,18 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(3, count($found), "expected to find 3 distinct variables, instead, found: ". ToolBox::debug_print($found,0));
 		
-		$this->assertTrue(isset($found['first']), "did not find the variable 'first'");
-		$this->assertEquals($found['first'], 2, "only found one instance of 'first', should have found two");
+		$this->assertTrue(isset($found['first']), "did not find the variable 'first': ". ToolBox::debug_print($found,0));
+		$this->assertEquals($found['first'], 2, "only found one instance of 'first', should have found two: ". ToolBox::debug_print($found,0));
 		
-		$this->assertTrue(isset($found['_second']), "did not find the variable '_second'");
-		$this->assertEquals($found['_second'], 1, "found incorrect number of the variable '_second'");
+		$this->assertTrue(isset($found['_second']), "did not find the variable '_second': ". ToolBox::debug_print($found,0));
+		$this->assertEquals($found['_second'], 1, "found incorrect number of the variable '_second': ". ToolBox::debug_print($found,0));
 		
-		$this->assertTrue(isset($found['_4th']), "did not find the variable '_4th'");
-		$this->assertEquals($found['_4th'], 1, "found incorrect number of the variable '_4th'");
+		$this->assertTrue(isset($found['_4th']), "did not find the variable '_4th': ". ToolBox::debug_print($found,0));
+		$this->assertEquals($found['_4th'], 1, "found incorrect number of the variable '_4th': ". ToolBox::debug_print($found,0));
 		
 		//account for all those invalid variables.
-		$this->assertFalse(isset($found['3rd']), "found an invalidly-named variable (first character was a number)");
-		$this->assertFalse(isset($found['_4th']), "found an invalidly-named variable (underscore + number)");
-		$this->assertFalse(isset($found['with-dashes']), "found an invalidly-named variable (used dashes)");
+		$this->assertFalse(isset($found['3rd']), "found an invalidly-named variable (first character was a number): ". ToolBox::debug_print($found,0));
+		$this->assertFalse(isset($found['with-dashes']), "found an invalidly-named variable (used dashes): ". ToolBox::debug_print($found,0));
 	}
 	
 	public function test_noname() {
