@@ -33,17 +33,13 @@ class Template implements iTemplate {
 			$this->_name = $name;
 		}
 		if(!is_null($file)) {
-			if (file_exists($file)) {
-				try {
-					if (is_null($name)) {
-						$bits = explode('/', $file);
-						$this->_name = preg_replace('~\.tmpl~', '', array_pop($bits));
-					}
-					$this->_contents = file_get_contents($file);
-					$this->_dir = dirname($file);
-				} catch (Exception $ex) {
-					throw new \InvalidArgumentException;
+			if(file_exists($file)) {
+				if (is_null($name)) {
+					$bits = explode('/', $file);
+					$this->_name = preg_replace('~\.tmpl~', '', array_pop($bits));
 				}
+				$this->_contents = file_get_contents($file);
+				$this->_dir = dirname($file);
 			}
 			else {
 				throw new \InvalidArgumentException("file does not exist (". $file .")");
@@ -178,16 +174,18 @@ class Template implements iTemplate {
 	 * @param array $vars
 	 * @param type $render
 	 */
-	public function addVarList(array $vars, $render=true) {
-		foreach($vars as $k=>$v) {
-			if(is_object($v) && get_class($v) == get_class($this)) {
-				$this->add($v, $render);
-			}
-			elseif(is_array($v)) {
-				$this->addVarList($v, $render);
-			}
-			else {
-				$this->addVar($k, $v);
+	public function addVarList(array $vars=null, $render=true) {
+		if(is_array($vars)) {
+			foreach($vars as $k=>$v) {
+				if(is_object($v) && get_class($v) == get_class($this)) {
+					$this->add($v, $render);
+				}
+				elseif(is_array($v)) {
+					$this->addVarList($v, $render);
+				}
+				else {
+					$this->addVar($k, $v);
+				}
 			}
 		}
 	}
@@ -223,13 +221,8 @@ class Template implements iTemplate {
 		}
 
 		$rendered = array();
-		foreach($this->_templates as $name=>$obj) {
-			if(is_object($obj)) {
-				$rendered[$name] = $obj->render($stripUndefinedVars);
-			}
-			else {
-				$rendered[$name] = $obj;
-			}
+		foreach($this->_templates as $name=>$contents) {
+			$rendered[$name] = $contents;
 		}
 
 		$tags = array();
@@ -274,38 +267,21 @@ class Template implements iTemplate {
 	 * @throws \Exception
 	 */
 	public function get_block_row_defs() {
-		//cast $retArr as an array, so it's clean.
-		$retArr = array();
-
-		//looks good to me.  Run the regex...
+		$xBeginArr = array();
+		$xEndArr = array();
+		
 		$flags = PREG_PATTERN_ORDER;
-		$reg = "/<!-- BEGIN (\S{1,}) -->/";
-		preg_match_all($reg, $this->_contents, $beginArr, $flags);
-		$beginArr = $beginArr[1];
+		preg_match_all("/<!-- BEGIN (\S{1,}) -->/", $this->_contents, $xBeginArr, $flags);
+		$beginArr = $xBeginArr[1];
 
-		$endReg = "/<!-- END (\S{1,}) -->/";
-		preg_match_all($endReg, $this->_contents, $endArr, $flags);
-		$endArr = $endArr[1];
+		preg_match_all("/<!-- END (\S{1,}) -->/", $this->_contents, $xEndArr, $flags);
+		$endArr = $xEndArr[1];
 
 		$numIncomplete = 0;
 		$nesting = "";
-
-		//create a part of the array that shows any orphaned "BEGIN" statements (no matching "END"
-		// statement), and orphaned "END" statements (no matching "BEGIN" statements)
-		// NOTE::: by doing this, should easily be able to tell if the block rows were defined
-		// properly or not.
-		if(count(array_diff($beginArr, $endArr)) > 0) {
-			foreach($retArr['incomplete']['begin'] as $num=>$val) {
-				$nesting = ToolBox::create_list($nesting, $val);
-				$numIncomplete++;
-			}
-		}
-		if(count(array_diff($endArr, $beginArr)) > 0) {
-			foreach($retArr['incomplete']['end'] as $num=>$val) {
-				$nesting = ToolBox::create_list($nesting, $val);
-				$numIncomplete++;
-			}
-		}
+		
+		$numIncomplete += count(array_diff($beginArr, $endArr));
+		$numIncomplete += count(array_diff($endArr, $beginArr));
 
 		if($numIncomplete > 0) {
 			throw new \Exception("invalidly nested block rows: ". $nesting);
@@ -324,6 +300,7 @@ class Template implements iTemplate {
 		$rowPlaceholder = $name;
 
 		$reg = "/<!-- BEGIN $handle -->(.+){0,}<!-- END $handle -->/sU";
+		$m = array();
 		preg_match_all($reg, $this->_contents, $m);
 		if(!is_array($m) || !isset($m[0][0]) ||  !is_string($m[0][0])) {
 			throw new \Exception("could not find ". $handle ." in '". $this->_contents ."'");

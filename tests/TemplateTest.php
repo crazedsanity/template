@@ -83,17 +83,17 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 			$x->addVar($k);
 		}
 		$this->assertEquals($x->render(false), $x->render(true), "render failed when all template vars accounted for");
+		
+		$this->assertEquals($x->render(false), "$x", "render failed when cast as a string");
 	}
 
-
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
 	public function test_setRecursion() {
-		try {
-			$x = new Template(null);
-			$x->set_recursionDepth(null);
-		}
-		catch(InvalidArgumentException $ex) {
-			$this->assertTrue((bool)preg_match('~^$~', $ex->getMessage()), "unexpected exception contents: ". $ex->getMessage());
-		}
+		$x = new Template(null);
+		$x->set_recursionDepth(null);
 	}
 
 
@@ -114,7 +114,6 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(50, $num, "did not recurse... ");
 	}
-
 
 
 	public function test_origin() {
@@ -163,6 +162,30 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	}
 	
 	
+	/**
+	 * @expectedException InvalidArgumentException
+	 * @expectedExceptionMessage missing a name
+	 */
+	public function test_add_missingName() {
+		$x = new Template(null);
+
+		$y = new Template(null);
+		$x->add($y);
+	}
+	
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 * @expectedExceptionMessage value was not appropriate
+	 */
+	public function test_addVar_valueNotAppropriate() {
+		$x = new Template(null);
+		$y = new stdClass();
+
+		$x->addVar('test', $y);
+	}
+	
+	
 	public function test_addVarList() {
 		$varList = array(
 			'var1'		=> "template",
@@ -182,6 +205,37 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($x->render(), $y->render(), "Adding vars by array didn't work like adding them individually");
 		$this->assertEquals($x, $y);
+	}
+	
+	
+	public function test_addVarListWithSpecialArray() {
+		$x = new Template(null);
+		
+		$y = array(
+			'first'	=> new Template(null, 'test'),
+			'second'	=> array(
+				'x'	=> 1,
+				'y'	=> 2,
+				'z'	=> 3,
+			),
+			'third'	=> 'plain'
+		);
+		$x->addVarList($y);
+	}
+	
+	
+	public function test_addVarList_null() {
+		$x = new Template(null);
+		$x->addVarList(null);
+	}
+	
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 * @expectedExceptionMessage file does not exist
+	 */
+	public function test_createWithInvalidFile() {
+		$x = new Template('/__INVALID__/path/to/missing/file.null');
 	}
 	
 	
@@ -310,6 +364,16 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	}
 	
 	
+	/**
+	 * @expectedException InvalidArgumentException
+	 * @expectedExceptionMessage invalid or empty array
+	 */
+	public function test_rowParsing_emptyArray() {
+		$x = new Template(null);
+		$x->renderRows(array());
+	}
+	
+	
 	public function test_strippingJsOneLiners() {
 		$_tmpl = new Template(__DIR__ .'/files/templates/js.tmpl');
 		$foundThis = strstr($_tmpl->contents, 'Typekit.load');
@@ -419,6 +483,9 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$staticOut = Template::getTemplateVarDefinitions($contents);
 		$normalOut = $x->getVarDefinitions($contents);
+		
+		$this->assertEquals($x->getVarDefinitions(), $x->getVarDefinitions($contents), "output differs from file versus file contents as argument");
+		
 		$testOut = $x->getVarDefinitions(file_get_contents(__DIR__ .'/files/templates/main.tmpl'));
 		
 		$this->assertEquals($staticOut, $normalOut, "static output differs from function call output");
@@ -440,5 +507,32 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		}
 		
 		$this->assertEquals(array(), $leftOvers, "found some unexpected leftovers");
+	}
+	
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function test_get_invalidArgument() {
+		$x = new Template(null);
+		$x->invalidName;
+	}
+	
+	/**
+	 * @expectedException Exception
+	 * @expectedExceptionMessage invalidly nested block
+	 */
+	public function test_invalidlyNestedBlockRows() {
+		$x = new Template(__DIR__ .'/files/templates/invalidNesting.tmpl');
+		$res = $x->get_block_row_defs();
+	}
+	
+	/**
+	 * @expectedException Exception
+	 * @expectedExceptionMessage could not find something
+	 */
+	public function test_setBlockRow_nonexistentRow() {
+		$x = new Template(null);
+		$x->setBlockRow('something');
 	}
 }
