@@ -361,6 +361,37 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$newRenderedWithLeftovers = $new->renderRows($recordSet, false);
 		
 		$this->assertEquals($renderedWithLeftovers, $newRenderedWithLeftovers);
+		
+		// ensure that the "test" index (ONLY ONCE) is there only once.
+//		$numFound = preg_match_all('~ONLY ONCE~', $renderedWithLeftovers);
+//		$this->assertEquals(1, preg_match_all('~ONLY ONCE~', $renderedWithLeftovers), "value from first row carried over to second: ". ToolBox::debug_print($renderedWithLeftovers));
+	}
+	
+	
+	public function test_renderRows_unequalArrays() {
+		$path = __DIR__ .'/files/templates/testRow.tmpl';
+		$tmpl = new Template($path);
+		$recordSet = array(
+			0 => array(
+				'primary_id'    => 1,
+				'record_name'   => 'The First Record',
+				'another_field' => 'field value',
+				'is_active'     => 0,
+				'test'			=> 'ONLY ONCE',
+			),
+			1 => array(
+				'primary_id'    => 3,
+				'record_name'   => 'A third record',
+				'another_field' => 'something else',
+				'is_active'     => 1,
+			),
+		);
+		
+		
+		$out = $tmpl->renderRows($recordSet);
+		$this->assertTrue(strlen($out) > 0);
+		$this->assertTrue(preg_match_all('~ONLY ONCE~', $out) > 0, "could not find unique test value in output: ". ToolBox::debug_print($out));
+		$this->assertEquals(1, preg_match_all('~ONLY ONCE~', $out), "value from first record carried over into second: ". ToolBox::debug_print($out));
 	}
 	
 	

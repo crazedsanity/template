@@ -248,8 +248,8 @@ class Template implements iTemplate {
 			foreach($recordSet as $record) {
 				$this->addVarList($record);
 				$renderedRows .= $this->render($stripUndefinedVars);
+				$this->reset();
 			}
-			$this->reset();
 		}
 		else {
 			throw new \InvalidArgumentException("invalid or empty array");
