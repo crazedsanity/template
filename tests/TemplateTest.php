@@ -390,8 +390,10 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$out = $tmpl->renderRows($recordSet);
 		$this->assertTrue(strlen($out) > 0);
-		$this->assertTrue(preg_match_all('~ONLY ONCE~', $out) > 0, "could not find unique test value in output: ". ToolBox::debug_print($out));
-		$this->assertEquals(1, preg_match_all('~ONLY ONCE~', $out), "value from first record carried over into second: ". ToolBox::debug_print($out));
+		
+		$matches = array();// this is a necessary evil for PHP < 5.4
+		$this->assertTrue(preg_match_all('~ONLY ONCE~', $out, $matches) > 0, "could not find unique test value in output: ". ToolBox::debug_print($out));
+		$this->assertEquals(1, preg_match_all('~ONLY ONCE~', $out, $matches), "value from first record carried over into second: ". ToolBox::debug_print($out));
 	}
 	
 	
