@@ -244,15 +244,13 @@ class Template implements iTemplate {
 	//-------------------------------------------------------------------------
 	public function renderRows(array $recordSet, $stripUndefinedVars=false) {
 		$renderedRows = "";
+		
 		if(is_array($recordSet) && count($recordSet)) {
 			foreach($recordSet as $record) {
 				$this->addVarList($record);
 				$renderedRows .= $this->render($stripUndefinedVars);
 				$this->reset();
 			}
-		}
-		else {
-			throw new \InvalidArgumentException("invalid or empty array");
 		}
 		return $renderedRows;
 	}

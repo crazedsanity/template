@@ -397,13 +397,9 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	}
 	
 	
-	/**
-	 * @expectedException InvalidArgumentException
-	 * @expectedExceptionMessage invalid or empty array
-	 */
 	public function test_rowParsing_emptyArray() {
 		$x = new Template(null);
-		$x->renderRows(array());
+		$this->assertEquals("", $x->renderRows(array()));
 	}
 	
 	
