@@ -61,6 +61,7 @@ class Template implements iTemplate {
 		else {
 			throw new \InvalidArgumentException();
 		}
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
@@ -105,6 +106,7 @@ class Template implements iTemplate {
 	 */
 	public function setContents($value) {
 		$this->_contents = $value;
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 	
@@ -113,6 +115,7 @@ class Template implements iTemplate {
 	//-------------------------------------------------------------------------
 	public function setName($value) {
 		$this->_name = $value;
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
@@ -140,6 +143,7 @@ class Template implements iTemplate {
 		else{
 			throw new \InvalidArgumentException("template is missing a name");
 		}
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
@@ -162,6 +166,7 @@ class Template implements iTemplate {
 			throw new \InvalidArgumentException("value was not appropriate: ". var_export($value, true));
 		}
 		$this->add($x, $render);
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
@@ -188,6 +193,7 @@ class Template implements iTemplate {
 				}
 			}
 		}
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 	
@@ -201,6 +207,7 @@ class Template implements iTemplate {
 		}
 		
 		$this->addVarList($newVars);
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
@@ -424,6 +431,7 @@ class Template implements iTemplate {
 	public function reset() {
 		$this->_blockRows = array();
 		$this->_templates = array();
+		return $this;
 	}
 	//---------------------------------------------------------------------------------------------
 }

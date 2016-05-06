@@ -564,4 +564,32 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		$x = new Template(null);
 		$x->setBlockRow('something');
 	}
+	
+	
+	public function test_methodChaining() {
+		$templateFile = __DIR__ .'/files/templates/main.tmpl';
+		$x = new Template($templateFile);
+		$y = new Template($templateFile);
+		
+		$varList = array(
+			'file1'	=> "first",
+			'file2'	=> "second",
+		);
+		$varList2 = array(
+			'ar1'	=> "var one",
+			'ar2'	=> "the second",
+		);
+		
+		$y->addVarList($varList);
+		$y->addVar('var1', 'test');
+		$y->addVarListWithPrefix($varList2, 'v');
+		$y->addVar('var1', "use this");
+		$normalRender = $y->render();
+		$this->assertNotEquals(file_get_contents($templateFile), $normalRender);
+		
+		$chainRender = $x->addVarList($varList)->addVar('var1', 'test')->addVarListWithPrefix($varList2, 'v')->addVar('var1', "use this")->render();
+		$this->assertNotEquals(file_get_contents($templateFile), $chainRender);
+		
+		$this->assertEquals($normalRender, $chainRender);
+	}
 }
