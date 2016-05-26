@@ -7,6 +7,19 @@ use \Exception;
 
 class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	
+	public function test_load() {
+		$originalWay = new Template(__DIR__ .'/files/templates/main.tmpl');
+		$originalWay->addVar('test', __METHOD__);
+		
+		$usingLoad = new Template(null);
+		$usingLoad->addVar('test', __METHOD__);
+		
+		$this->assertNotEquals($originalWay, $usingLoad);
+		
+		$usingLoad->load(__DIR__ .'/files/templates/main.tmpl');
+		
+		$this->assertEquals($originalWay, $usingLoad);
+	}
 	
 	public function test_findVars() {
 		// set the template string (because we don't need to read-in a file for this)

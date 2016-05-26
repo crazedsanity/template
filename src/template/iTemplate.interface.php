@@ -13,6 +13,7 @@ namespace crazedsanity\template;
  * @author danf
  */
 interface iTemplate {
+	public function load($file);
 	public function add(Template $tmpl);
 	public function addVar($name, $value);
 	public function addVarList(array $vars);

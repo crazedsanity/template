@@ -28,13 +28,21 @@ class Template implements iTemplate {
 	 * @param null $name    Name to use for this template
 	 */
 	public function __construct($file, $name=null) {
-		$this->_origin = $file;
 		if(!is_null($name)) {
 			$this->_name = $name;
 		}
+		$this->load($file);
+	}
+	//-------------------------------------------------------------------------
+	
+	
+	
+	//-------------------------------------------------------------------------
+	public function load($file) {
+		$this->_origin = $file;
 		if(!is_null($file)) {
 			if(file_exists($file)) {
-				if (is_null($name)) {
+				if (is_null($this->_name)) {
 					$bits = explode('/', $file);
 					$this->_name = preg_replace('~\.tmpl~', '', array_pop($bits));
 				}
@@ -45,6 +53,7 @@ class Template implements iTemplate {
 				throw new \InvalidArgumentException("file does not exist (". $file .")");
 			}
 		}
+		return $this;
 	}
 	//-------------------------------------------------------------------------
 
