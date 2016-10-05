@@ -1,6 +1,5 @@
 {
 	"name": "crazedsanity/template",
-	"license": "MIT",
 	"description": "Templating library.",
 	"keywords": ["php", "dry", "oaoo", "template"],
 	"homepage": "http://www.crazedsanity.com",

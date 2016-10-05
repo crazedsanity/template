@@ -2,8 +2,6 @@
 
 use crazedsanity\template\Template;
 use crazedsanity\core\ToolBox;
-use \InvalidArgumentException;
-use \Exception;
 
 class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	
@@ -571,7 +569,7 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @expectedException Exception
-	 * @expectedExceptionMessage could not find something
+	 * @expectedExceptionMessage could not find block row
 	 */
 	public function test_setBlockRow_nonexistentRow() {
 		$x = new Template(null);
