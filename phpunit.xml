@@ -8,5 +8,8 @@
 		<blacklist>
 			<directory suffix=".php">vendor/</directory>
 		</blacklist>
+		<whitelist>
+			<directory suffix=".php">src</directory>
+		</whitelist>
 	</filter>
 </phpunit>

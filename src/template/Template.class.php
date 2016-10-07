@@ -317,7 +317,7 @@ class Template implements iTemplate {
 		$m = array();
 		preg_match_all($reg, $this->_contents, $m);
 		if(!is_array($m) || !isset($m[0][0]) ||  !is_string($m[0][0])) {
-			throw new \Exception("could not find block row '". $handle ."' in template '". $this->name ."'");
+			throw new \Exception("could not find block row '". $handle ."' in template '". $this->name .", filename=(". $this->_origin .")");
 		} else {
 
 			if($removeDefs) {
