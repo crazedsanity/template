@@ -309,7 +309,7 @@ class Template implements iTemplate {
 
 
 	//---------------------------------------------------------------------------------------------
-	public function setBlockRow($handle, $removeDefs=true) {
+	public function setBlockRow($handle, $removeDefs=true, $addPlaceholder=true) {
 		$name = $handle;
 		$rowPlaceholder = $name;
 
@@ -320,13 +320,15 @@ class Template implements iTemplate {
 			throw new \Exception("could not find block row '". $handle ."' in template '". $this->name .", filename=(". $this->_origin .")");
 		} else {
 
-			if($removeDefs) {
+			if($removeDefs === true) {
 				$openHandle = "<!-- BEGIN $handle -->";
 				$endHandle  = "<!-- END $handle -->";
 				$m[0][0] = str_replace($openHandle, "", $m[0][0]);
 				$m[0][0] = str_replace($endHandle, "", $m[0][0]);
 			}
-			$this->_contents = preg_replace($reg, "{". $rowPlaceholder ."}", $this->_contents);
+			if($addPlaceholder === true) {
+				$this->_contents = preg_replace($reg, "{". $rowPlaceholder ."}", $this->_contents);
+			}
 		}
 		
 		$blockRow = new Template(null, $rowPlaceholder);

@@ -603,4 +603,15 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($normalRender, $chainRender);
 	}
+	
+	
+	public function test_addPlaceholder() {
+		$templateFile = __DIR__ .'/files/templates/testBlockRow_addPlaceHolder.tmpl';
+		$x = new Template($templateFile);
+		
+		$x->setBlockRow('test', true, false);
+		$varList = $x->getVarDefinitions();
+		
+		$this->assertFalse(in_array('test', $varList), "left behind a template var.  Oops.");
+	}
 }
