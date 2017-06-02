@@ -614,4 +614,17 @@ class TestOfTemplate extends PHPUnit_Framework_TestCase {
 		
 		$this->assertFalse(in_array('test', $varList), "left behind a template var.  Oops.");
 	}
+	
+	
+	public function test_handleBoolean() {
+		$x = new Template(__DIR__ .'/files/templates/bool.tmpl');
+		$x->addVar('true', true);
+		$x->addVar('false', false);
+		
+		$y = new Template(__DIR__ .'/files/templates/bool.tmpl');
+		$y->addVar('true', 1);
+		$y->addVar('false', 0);
+		
+		$this->assertEquals($x->render(), $y->render(), "boolean values not getting translated to 0/1");
+	}
 }

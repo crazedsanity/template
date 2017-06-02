@@ -168,6 +168,14 @@ class Template implements iTemplate {
 		if(is_null($value)) {
 			$value = "";
 		}
+		elseif(is_bool($value)) {
+			if($value === true) {
+				$value = 1;
+			}
+			else {
+				$value = 0;
+			}
+		}
 		if(is_string($value) || is_numeric($value)) {
 			$x->setContents($value);
 		}
